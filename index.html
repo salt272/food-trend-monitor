@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Food Trend Monitor</title>
+<meta name="description" content="Nongshim AI Lab internal food trend monitor — demo page with sample data.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">Food Trend Monitor<small>Nongshim AI Lab · internal research tool</small></div>
+    <nav><a href="index.html">Dashboard</a><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms</a></nav>
+  </header>
+
+  <div class="notice"><strong>Demo page with sample data.</strong> The production tool is used only inside Nongshim and runs on company computers; it is not accessible from the internet. This page shows the layout of its weekly dashboard with illustrative numbers.</div>
+
+  <section class="tiles" aria-label="Summary">
+    <div class="tile"><div class="k">Creator channels monitored</div><div class="v">630</div></div>
+    <div class="tile"><div class="k">Markets</div><div class="v">11</div></div>
+    <div class="tile"><div class="k">Recent videos checked this week</div><div class="v">12,000</div></div>
+    <div class="tile"><div class="k">Fast-growing videos flagged</div><div class="v">85</div></div>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>Rising dishes this week</h2>
+      <p class="sub">Week-over-week growth in new videos mentioning each dish · sample data</p>
+      <div class="bars" id="bars"></div>
+    </section>
+    <section class="card">
+      <h2>Weekly videos mentioning “tomato ramen”</h2>
+      <p class="sub">All markets, last 8 weeks · sample data</p>
+      <svg id="line" viewBox="0 0 420 210" width="100%" role="img" aria-label="Line chart of weekly video counts"></svg>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:16px">
+    <h2>Signals by market</h2>
+    <p class="sub">Aggregated from public comments on fast-growing videos · sample data</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Market</th><th>Top rising dish</th><th class="num">Growth</th><th>Main comment language</th><th>Availability signal</th></tr></thead>
+      <tbody>
+        <tr><td>Indonesia</td><td>Melon milk</td><td class="num">+64%</td><td>Indonesian</td><td>“Sold out in stores” mentions rising</td></tr>
+        <tr><td>United States</td><td>Carbonara spicy noodles</td><td class="num">+41%</td><td>English</td><td>—</td></tr>
+        <tr><td>Japan</td><td>Tomato ramen</td><td class="num">+38%</td><td>Japanese</td><td>—</td></tr>
+        <tr><td>Germany</td><td>Tteokbokki</td><td class="num">+27%</td><td>German</td><td>“Not available here” mentions</td></tr>
+        <tr><td>Saudi Arabia</td><td>Spicy chicken noodles</td><td class="num">+22%</td><td>Arabic</td><td>Halal questions</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <footer>
+    This tool uses YouTube API Services. It reads only public YouTube data and does not use YouTube sign-in or any personal account data.
+    · <a href="https://www.youtube.com/t/terms">YouTube Terms of Service</a>
+    · <a href="https://policies.google.com/privacy">Google Privacy Policy</a>
+    · <a href="privacy.html">Our Privacy Policy</a>
+    · <a href="terms.html">Terms</a>
+    <br>© Nongshim AI Lab · Contact: salt.chan.work@gmail.com
+  </footer>
+</div>
+<div id="tip" role="tooltip"></div>
+<script>
+const tip=document.getElementById('tip');
+const show=(e,t)=>{tip.textContent=t;tip.style.opacity=1;tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY+12)+'px'};
+const hide=()=>tip.style.opacity=0;
+
+const dishes=[["Melon milk",64],["Carbonara spicy noodles",41],["Tomato ramen",38],["Tteokbokki",27],["Spicy chicken noodles",22],["Kimbap",15]];
+const max=Math.max(...dishes.map(d=>d[1]));
+document.getElementById('bars').innerHTML=dishes.map(([n,v])=>
+  `<div class="bar" data-t="${n}: +${v}% week over week"><span>${n}</span><div class="track"><div class="fill" style="width:${v/max*100}%"></div></div><span class="val">+${v}%</span></div>`).join('');
+document.querySelectorAll('.bar').forEach(b=>{b.addEventListener('mousemove',e=>show(e,b.dataset.t));b.addEventListener('mouseleave',hide)});
+
+const pts=[112,118,131,127,149,176,203,241], W=420,H=210,L=38,R=12,T=12,B=28;
+const ymax=260, x=i=>L+i*(W-L-R)/(pts.length-1), y=v=>T+(H-T-B)*(1-v/ymax);
+let s='';
+[0,100,200].forEach(g=>{s+=`<line class="grid-line" x1="${L}" x2="${W-R}" y1="${y(g)}" y2="${y(g)}" stroke-width="1"/><text x="${L-6}" y="${y(g)+4}" text-anchor="end">${g}</text>`});
+pts.forEach((v,i)=>{s+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle">W${i+1}</text>`});
+s+=`<polyline fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" points="${pts.map((v,i)=>x(i)+','+y(v)).join(' ')}"/>`;
+pts.forEach((v,i)=>{s+=`<circle cx="${x(i)}" cy="${y(v)}" r="4.5" fill="var(--accent)" stroke="var(--card)" stroke-width="2"/><rect x="${x(i)-14}" y="${T}" width="28" height="${H-T-B}" fill="transparent" data-t="Week ${i+1}: ${v} videos"/>`});
+s+=`<text x="${x(pts.length-1)-4}" y="${y(pts[pts.length-1])-10}" text-anchor="end" style="fill:var(--ink);font-weight:600">${pts[pts.length-1]}</text>`;
+const svg=document.getElementById('line'); svg.innerHTML=s;
+svg.querySelectorAll('rect[data-t]').forEach(r=>{r.addEventListener('mousemove',e=>show(e,r.dataset.t));r.addEventListener('mouseleave',hide)});
+</script>
+</body>
+</html>
